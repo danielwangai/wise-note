@@ -3,6 +3,7 @@ const graphql = require("graphql")
 
 // import models
 const User = require("./models/user")
+const Blog = require("./models/blog")
 
 // graphql data types
 const {
@@ -28,10 +29,21 @@ const UserType = new GraphQLObjectType({
     })
 })
 
+const BlogType = new GraphQLObjectType({
+    name: "Blog",
+    fields: () => ({
+        id: {type: GraphQLID },
+        title: {type: GraphQLString },
+        content: {type: GraphQLString },
+        authorId: {type: GraphQLID }
+    })
+})
+
 // root query
 const RootQuery = new GraphQLObjectType({
     name: "RootQueryType",
     fields: {
+        // get single user
         user: {
             type: UserType,
             args: { id: {type: GraphQLID}},
@@ -87,6 +99,22 @@ const Mutation = new GraphQLObjectType({
             args: {id: { type: GraphQLID }},
             resolve(parent, args) {
                 return User.findByIdAndRemove(args.id)
+            }
+        },
+        createBlog: {
+            type: BlogType,
+            args: {
+                title: { type: GraphQLString },
+                content: { type: GraphQLString },
+                authorId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                let blog = new Blog({
+                    title: args.title,
+                    content: args.content,
+                    authorId: args.authorId
+                })
+                return blog.save()
             }
         }
     }
