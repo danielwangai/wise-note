@@ -20,6 +20,7 @@ const UserType = new GraphQLObjectType({
         id: { type: GraphQLID },
         name: { type: GraphQLString },
         username: { type: GraphQLString },
+        email: { type: GraphQLString },
         bio: { type: GraphQLString },
         profilePic: { type: GraphQLString },
         isAuthor: { type: GraphQLBoolean }
@@ -35,11 +36,42 @@ const RootQuery = new GraphQLObjectType({
             args: { id: {type: GraphQLID}},
             resolve(parent, args) {
                 // fetch user by id
+                return User.findById(args.id)
+            }
+        }
+    }
+})
+
+const Mutation = new GraphQLObjectType({
+    name: "Mutation",
+    fields: {
+        addUser: {
+            type: UserType,
+            args: {
+                name: { type: GraphQLString },
+                username: { type: GraphQLString },
+                email: { type: GraphQLString },
+                bio: { type: GraphQLString },
+                profilePic: { type: GraphQLString },
+                isAuthor: { type: GraphQLBoolean }
+            },
+            resolve(parent, args) {
+                // create new user
+                let user = new User({
+                    name: args.name,
+                    username: args.username,
+                    email: args.email,
+                    bio: args.bio,
+                    profilePic: args.profilePic,
+                    isAuthor: args.isAuthor
+                })
+                return user.save()
             }
         }
     }
 })
 
 module.exports = new GraphQLSchema({
-    query: RootQuery
+    query: RootQuery,
+    mutation: Mutation
 });
