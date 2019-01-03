@@ -10,7 +10,8 @@ const {
     GraphQLID,
     GraphQLString,
     GraphQLBoolean,
-    GraphQLSchema
+    GraphQLSchema,
+    GraphQLList
 } = graphql
 
 // define types
@@ -37,6 +38,19 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args) {
                 // fetch user by id
                 return User.findById(args.id)
+            }
+        },
+        // get all users who are authors
+        authors: {
+            type: new GraphQLList(UserType),
+            resolve() {
+                return User.find({isAuthor: true})
+            }
+        },
+        users: {
+            type: new GraphQLList(UserType),
+            resolve() {
+                return User.find({})
             }
         }
     }
@@ -66,6 +80,13 @@ const Mutation = new GraphQLObjectType({
                     isAuthor: args.isAuthor
                 })
                 return user.save()
+            }
+        },
+        deleteUser: {
+            type: UserType,
+            args: {id: { type: GraphQLID }},
+            resolve(parent, args) {
+                return User.findByIdAndRemove(args.id)
             }
         }
     }
