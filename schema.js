@@ -25,7 +25,13 @@ const UserType = new GraphQLObjectType({
         email: { type: GraphQLString },
         bio: { type: GraphQLString },
         profilePic: { type: GraphQLString },
-        isAuthor: { type: GraphQLBoolean }
+        isAuthor: { type: GraphQLBoolean },
+        userBlogs: {
+            type: new GraphQLList(BlogType),
+            resolve(parent) {
+                return Blog.find({authorId: parent.id})
+            }
+        }
     })
 })
 
@@ -35,7 +41,12 @@ const BlogType = new GraphQLObjectType({
         id: {type: GraphQLID },
         title: {type: GraphQLString },
         content: {type: GraphQLString },
-        authorId: {type: GraphQLID }
+        author: {
+            type: UserType,
+            resolve(parent) {
+                return User.findById(parent.authorId)
+            }
+        }
     })
 })
 
