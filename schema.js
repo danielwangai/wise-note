@@ -75,6 +75,21 @@ const RootQuery = new GraphQLObjectType({
             resolve() {
                 return User.find({})
             }
+        },
+        // get blog by id
+        blog: {
+            type: BlogType,
+            args: { id: { type: GraphQLID } },
+            resolve(parent, args) {
+                return Blog.findById(args.id)
+            }
+        },
+        // get all blogs
+        blogs: {
+            type: new GraphQLList(BlogType),
+            resolve() {
+                return Blog.find({})
+            }
         }
     }
 })
@@ -126,6 +141,36 @@ const Mutation = new GraphQLObjectType({
                     authorId: args.authorId
                 })
                 return blog.save()
+            }
+        },
+        updateBlog: {
+            type: BlogType,
+            args: {
+                id: { type: GraphQLID },
+                title: { type: GraphQLString },
+                content: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                return Blog.findByIdAndUpdate(
+                    args.id,
+                    { $set: { title: args.title, content: args.content }}
+                )
+                .catch(function(err) {
+                    return new Error(err)
+                })
+            }
+        },
+        deleteBlog: {
+            type: BlogType,
+            args: {
+                id: { type: GraphQLID },
+            },
+            resolve(parent, args) {
+                const removedBlog = Blog.findByIdAndRemove(args.id).exec()
+                if(!removedBlog) {
+                    throw new Error('Error. Blog not found.')
+                }
+                // return {message: "User removed successfully."}
             }
         }
     }
