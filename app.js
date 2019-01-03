@@ -1,6 +1,10 @@
 require("dotenv").config()
 const express = require("express")
+const graphqlHTTP = require("express-graphql")
 const mongoose = require("mongoose")
+
+// local imports
+const schema = require("./schema")
 
 const app = express()
 
@@ -17,6 +21,11 @@ mongoose.connect(DB_URL)
 mongoose.connection.once("open", function() {
     console.log("Connected to database...")
 })
+
+app.use("/graphql", graphqlHTTP({
+    schema,
+    graphiql: true
+}))
 
 app.listen(4000, function() {
     console.log("Listening on port 4000")
