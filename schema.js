@@ -145,6 +145,51 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args) {
                 return BlogReaders.find({ blogId: args.blogId })
             }
+        },
+        getAllBlogVotes: {
+            type: new GraphQLList(BlogVoteType),
+            args: {
+                blogId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogVote.find({ blogId: args.blogId })
+            }
+        },
+        getAllBlogUpVotes: {
+            type: new GraphQLList(BlogVoteType),
+            args: {
+                blogId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogVote.find({ blogId: args.blogId, vote: "upvote" })
+            }
+        },
+        getAllBlogDownVotes: {
+            type: new GraphQLList(BlogVoteType),
+            args: {
+                blogId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogVote.find({ blogId: args.blogId, vote: "downvote" })
+            }
+        },
+        getUserUpVotedBlogs: {
+            type: new GraphQLList(BlogVoteType),
+            args: {
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogVote.find({ userId: args.userId, vote: "upvote" })
+            }
+        },
+        getUserDownVotedBlogs: {
+            type: new GraphQLList(BlogVoteType),
+            args: {
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogVote.find({ userId: args.userId, vote: "downvote" })
+            }
         }
     }
 })
@@ -260,7 +305,7 @@ const Mutation = new GraphQLObjectType({
                 let newVote = new BlogVote()
                 return BlogVote.find({ blogId: args.blogId, userId: args.userId })
                     .then(function(vote) {
-                        const validChoices = ["upvote", "down-vote"]
+                        const validChoices = ["upvote", "downvote"]
                         if(!vote.length) {
                             // validate vote
                             if(args.vote.length  && validChoices.includes(args.vote)) {
