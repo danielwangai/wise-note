@@ -27,10 +27,16 @@ const UserType = new GraphQLObjectType({
         bio: { type: GraphQLString },
         profilePic: { type: GraphQLString },
         isAuthor: { type: GraphQLBoolean },
-        userBlogs: {
+        userAuthoredBlogs: {
             type: new GraphQLList(BlogType),
             resolve(parent) {
                 return Blog.find({authorId: parent.id})
+            }
+        },
+        userReads: {
+            type: new GraphQLList(BlogReadersType),
+            resolve(parent) {
+                return BlogReaders.find({userId: parent.id})
             }
         }
     })
