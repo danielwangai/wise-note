@@ -5,6 +5,7 @@ const graphql = require("graphql")
 const User = require("./models/user")
 const Blog = require("./models/blog")
 const BlogReaders = require("./models/blogReaders")
+const BlogVote = require("./models/blogVote")
 
 // graphql data types
 const {
@@ -59,6 +60,25 @@ const BlogType = new GraphQLObjectType({
 
 const BlogReadersType = new GraphQLObjectType({
     name: "BlogReadersType",
+    fields: () => ({
+        id: {type: GraphQLID },
+        blog: {
+            type: BlogType,
+            resolve(parent) {
+                return Blog.findById(parent.blogId)
+            }
+        },
+        user: {
+            type: UserType,
+            resolve(parent) {
+                return User.findById(parent.userId)
+            }
+        }
+    })
+})
+
+const BlogVoteType = new GraphQLObjectType({
+    name: "BlogVote",
     fields: () => ({
         id: {type: GraphQLID },
         blog: {
@@ -226,6 +246,43 @@ const Mutation = new GraphQLObjectType({
                         } else{
                             console.log("Already exists ", br)
                         }
+                    })
+            }
+        },
+        makeVote: {
+            type: BlogVoteType,
+            args: {
+                blogId: { type: GraphQLID },
+                userId: { type: GraphQLID },
+                vote: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                let newVote = new BlogVote()
+                return BlogVote.find({ blogId: args.blogId, userId: args.userId })
+                    .then(function(vote) {
+                        const validChoices = ["upvote", "down-vote"]
+                        if(!vote.length) {
+                            // validate vote
+                            if(args.vote.length  && validChoices.includes(args.vote)) {
+                                console.log("VOTE", vote)
+                                newVote.blogId = args.blogId
+                                newVote.userId = args.userId
+                                newVote.vote = args.vote
+                                return newVote.save()
+                            }
+                            console.log('Invalid vote')
+                            return
+                        }
+                        // update vote
+                        console.log("UPDATE ", vote)
+                        if(!args.vote.length  || !validChoices.includes(args.vote)) {
+                            console.log("Vote can either be upvote or downvote ", vote[0]._id)
+                            return
+                        }
+                        return BlogVote.findByIdAndUpdate(
+                            vote[0]._id,
+                            { $set: { vote: args.vote }}
+                        )
                     })
             }
         }
