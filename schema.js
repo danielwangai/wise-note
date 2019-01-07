@@ -4,6 +4,7 @@ const graphql = require("graphql")
 // import models
 const User = require("./models/user")
 const Blog = require("./models/blog")
+const BlogReaders = require("./models/blogReaders")
 
 // graphql data types
 const {
@@ -50,6 +51,25 @@ const BlogType = new GraphQLObjectType({
     })
 })
 
+const BlogReadersType = new GraphQLObjectType({
+    name: "BlogReadersType",
+    fields: () => ({
+        id: {type: GraphQLID },
+        blog: {
+            type: BlogType,
+            resolve(parent) {
+                return Blog.findById(parent.blogId)
+            }
+        },
+        user: {
+            type: UserType,
+            resolve(parent) {
+                return User.findById(parent.userId)
+            }
+        }
+    })
+})
+
 // root query
 const RootQuery = new GraphQLObjectType({
     name: "RootQueryType",
@@ -89,6 +109,15 @@ const RootQuery = new GraphQLObjectType({
             type: new GraphQLList(BlogType),
             resolve() {
                 return Blog.find({})
+            }
+        },
+        blogReaders: {
+            type: new GraphQLList(BlogReadersType),
+            args: {
+                blogId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return BlogReaders.find({ blogId: args.blogId })
             }
         }
     }
@@ -170,7 +199,28 @@ const Mutation = new GraphQLObjectType({
                 if(!removedBlog) {
                     throw new Error('Error. Blog not found.')
                 }
-                // return {message: "User removed successfully."}
+            }
+        },
+        addBlogReader: {
+            type: BlogReadersType,
+            args: {
+                blogId: { type: GraphQLID },
+                userId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                // check of blogId and userId exists - on individual collections
+                // check if user-read exists
+                let newUserRead = new BlogReaders()
+                return BlogReaders.find({ blogId: args.blogId, userId: args.userId })
+                    .then(function(br) {
+                        if(!br.length) {
+                            newUserRead.blogId = args.blogId
+                            newUserRead.userId = args.userId
+                            return newUserRead.save()
+                        } else{
+                            console.log("Already exists ", br)
+                        }
+                    })
             }
         }
     }
